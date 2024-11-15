@@ -1,1 +1,142 @@
+task_manager_app/
+│
+├── lib/
+│   ├── main.dart
+│   ├── models/
+│   │   └── task.dart
+│   ├── controllers/
+│   │   └── task_controller.dart
+│   └── views/
+│       └── task_manager_page.dart
+│
+└── pubspec.yaml
+
+
+#1 Pubseak.yaml:
+
+name: task_manager_app
+description: A simple task manager app using GetX in Flutter.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.5
+
+#2 Lib models/task.dart:
+
+class Task {
+  String title;
+  bool isCompleted;
+
+  Task({required this.title, this.isCompleted = false});
+} 
+
+#3 .lib/controllers/task_controllers.dart:
+
+import 'package:get/get.dart';
+import '../models/task.dart';
+
+class TaskController extends GetxController {
+  var tasks = <Task>[].obs;
+
+  void addTask(String title) {
+    tasks.add(Task(title: title));
+  }
+
+  void toggleTaskStatus(int index) {
+    tasks[index].isCompleted = !tasks[index].isCompleted;
+    tasks.refresh(); // UI
+  }
+  void deleteTask(int index) {
+    tasks.removeAt(index);
+  }
+} 
+
+#4 views/task_manager_controller.pages.dart:
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controllers/task_controller.dart';
+
+class TaskManagerPage extends StatelessWidget {
+  final TaskController taskController = Get.put(TaskController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Task Manager'),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Add a task',
+              ),
+onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  taskController.addTask(value);
+                }
+              },
+            ),
+          ),
+          Expanded(
+            child: Obx(() => ListView.builder(
+              itemCount: taskController.tasks.length,
+              itemBuilder: (context, index) {
+                final task = taskController.tasks[index];
+                return ListTile(
+                  title: Text(
+                    task.title,
+                    style: TextStyle(
+                      decoration: task.isCompleted
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none,
+                    ),
+                  ),
+                  leading: Checkbox(
+                    value: task.isCompleted,
+                    onChanged: (newValue) {
+                      taskController.toggleTaskStatus(index);
+                    },
+                  ),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      taskController.deleteTask(index);
+                    },
+                  ),
+                );
+              },
+            )),
+          ),
+        ],
+      ),
+    );
+  }
+} 
+
+#5 Lib/main.dart:
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'views/task_manager_page.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: TaskManagerPage(),
+    );
+  }
+} 
+
 
